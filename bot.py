@@ -68,5 +68,4 @@ if __name__ == "__main__":
     t = threading.Thread(target=scheduler.run)
     t.start()
 
-    context = ('server.crt', 'server.key')
     app.run(host=HOST, port=PORT, debug=True)
