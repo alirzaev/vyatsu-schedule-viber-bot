@@ -53,7 +53,7 @@ def incoming():
             TextMessage(None, None, viber_request.event_type)
         ])
     elif isinstance(viber_request, ViberFailedRequest):
-        logger.warn("client failed receiving message. failure: {0}".format(viber_request))
+        logger.warning("client failed receiving message. failure: {0}".format(viber_request))
 
     return Response(status=200)
 
