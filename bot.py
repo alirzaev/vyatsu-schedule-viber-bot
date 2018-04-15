@@ -17,6 +17,7 @@ import threading
 
 PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
+WEB_HOOK_URL = getenv('WEB_HOOK_URL')
 
 # Configure logging
 logger = logging.getLogger()
@@ -57,13 +58,13 @@ def incoming():
     return Response(status=200)
 
 
-def set_webhook(viber):
-    viber.set_webhook('https://vyatsu-viber-bot.herokuapp.com')
+def set_web_hook(bot_instance):
+    bot_instance.set_webhook(WEB_HOOK_URL)
 
 
 if __name__ == "__main__":
     scheduler = sched.scheduler(time.time, time.sleep)
-    scheduler.enter(5, 1, set_webhook, (viber,))
+    scheduler.enter(5, 1, set_web_hook, (viber,))
     t = threading.Thread(target=scheduler.run)
     t.start()
 
