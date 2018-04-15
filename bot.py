@@ -1,3 +1,9 @@
+import logging
+import sched
+import threading
+import time
+from os import getenv
+
 from flask import Flask, request, Response
 from viberbot import Api
 from viberbot.api.bot_configuration import BotConfiguration
@@ -6,14 +12,8 @@ from viberbot.api.viber_requests import ViberConversationStartedRequest
 from viberbot.api.viber_requests import ViberFailedRequest
 from viberbot.api.viber_requests import ViberMessageRequest
 from viberbot.api.viber_requests import ViberSubscribedRequest
-from viberbot.api.viber_requests import ViberUnsubscribedRequest
 
-from os import getenv
-
-import time
-import logging
-import sched
-import threading
+import buttons
 
 PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
@@ -43,14 +43,18 @@ def incoming():
 
     if isinstance(viber_request, ViberMessageRequest):
         message = viber_request.message
-        viber.send_messages(viber_request.sender.id, [
-            message
-        ])
+        if message.text in ['calls', 'url']:
+            viber.send_messages(viber_request.sender.id, [
+                buttons.GREETING
+            ])
+        else:
+            viber.send_messages(viber_request.sender.id, [
+                TextMessage(text='Lol')
+            ])
     elif isinstance(viber_request, ViberConversationStartedRequest) \
-            or isinstance(viber_request, ViberSubscribedRequest) \
-            or isinstance(viber_request, ViberUnsubscribedRequest):
-        viber.send_messages(viber_request.user_id, [
-            TextMessage(None, None, viber_request.event_type)
+            or isinstance(viber_request, ViberSubscribedRequest):
+        viber.send_messages(viber_request.user.id, [
+            buttons.GREETING
         ])
     elif isinstance(viber_request, ViberFailedRequest):
         logger.warning("client failed receiving message. failure: {0}".format(viber_request))
