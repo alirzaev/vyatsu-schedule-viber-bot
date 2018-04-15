@@ -15,7 +15,7 @@ import logging
 import sched
 import threading
 
-PORT = getenv('PORT', 8080)
+PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
 
 logger = logging.getLogger()
