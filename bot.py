@@ -8,10 +8,15 @@ from viberbot.api.viber_requests import ViberMessageRequest
 from viberbot.api.viber_requests import ViberSubscribedRequest
 from viberbot.api.viber_requests import ViberUnsubscribedRequest
 
+from os import getenv
+
 import time
 import logging
 import sched
 import threading
+
+PORT = getenv('PORT', 8080)
+HOST = getenv('IP', '0.0.0.0')
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -62,4 +67,4 @@ if __name__ == "__main__":
     t.start()
 
     context = ('server.crt', 'server.key')
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host=HOST, port=PORT, debug=True)
