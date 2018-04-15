@@ -1,1 +1,2 @@
-bottle
+flask
+viberbot==1.0.11
