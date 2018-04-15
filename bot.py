@@ -18,8 +18,9 @@ import threading
 PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
 
+# Configure logging
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
