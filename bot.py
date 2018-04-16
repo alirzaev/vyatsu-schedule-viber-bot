@@ -7,23 +7,23 @@ from os import getenv
 from flask import Flask, request, Response
 from viberbot import Api
 from viberbot.api.bot_configuration import BotConfiguration
-from viberbot.api.messages.text_message import TextMessage
 from viberbot.api.viber_requests import ViberConversationStartedRequest
 from viberbot.api.viber_requests import ViberFailedRequest
 from viberbot.api.viber_requests import ViberMessageRequest
 from viberbot.api.viber_requests import ViberSubscribedRequest
 
-import buttons
+import processing
 
 PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
+TOKEN = getenv('TOKEN')
 WEB_HOOK_URL = getenv('WEB_HOOK_URL')
 if WEB_HOOK_URL is None:
-    WEB_HOOK_URL = input('Enter webhook url: ')
+    WEB_HOOK_URL = 'https://7ea55ae1.ngrok.io' #input('Enter webhook url: ').strip()
 
 # Configure logging
 logger = logging.getLogger()
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
@@ -33,7 +33,7 @@ app = Flask(__name__)
 viber = Api(BotConfiguration(
     name='VyatSU Bot',
     avatar='',
-    auth_token='47b2424fa4e7d6f7-2331960be0fc5564-c01dfaf5671bbf89'
+    auth_token=TOKEN
 ))
 
 
@@ -43,21 +43,14 @@ def incoming():
 
     viber_request = viber.parse_request(request.get_data(as_text=True))
 
+    logger.info('Processing message {}'.format(viber_request))
+
     if isinstance(viber_request, ViberMessageRequest):
-        message = viber_request.message
-        if message.text in ['calls', 'url']:
-            viber.send_messages(viber_request.sender.id, [
-                buttons.GREETING
-            ])
-        else:
-            viber.send_messages(viber_request.sender.id, [
-                TextMessage(text='Lol')
-            ])
-    elif isinstance(viber_request, ViberConversationStartedRequest) \
-            or isinstance(viber_request, ViberSubscribedRequest):
-        viber.send_messages(viber_request.user.id, [
-            buttons.GREETING
-        ])
+        processing.process_message_request(viber_request, viber)
+    elif isinstance(viber_request, ViberConversationStartedRequest):
+        processing.process_conversation_started_request(viber_request, viber)
+    elif isinstance(viber_request, ViberSubscribedRequest):
+        processing.process_subscribe_request(viber_request, viber)
     elif isinstance(viber_request, ViberFailedRequest):
         logger.warning("client failed receiving message. failure: {0}".format(viber_request))
 
