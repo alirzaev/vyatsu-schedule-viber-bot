@@ -1,11 +1,12 @@
 from json import loads, JSONDecodeError
-from logging import getLogger
+from logging import getLogger, INFO
 from typing import Optional
 
 import requests
 from viberbot import Api
 from viberbot.api.messages import (
-    TextMessage
+    TextMessage,
+    URLMessage
 )
 from viberbot.api.viber_requests import (
     ViberMessageRequest,
@@ -15,11 +16,13 @@ from viberbot.api.viber_requests import (
 
 import keyboards
 import buttons
+import user_info
+import misc
 import re
 
 _URL = 'https://vyatsuscheduleapi.herokuapp.com'
 
-_logger = getLogger()
+_logger = misc.get_logger('bot-processing')
 
 
 def _get_groups_info():
@@ -33,8 +36,16 @@ def _get_groups_info():
 
         return group_id, group_name, spec, course
 
+    def _get_faculty_shorthand(faculty_name: str) -> str:
+        try:
+            i = faculty_name.index('(')
+            return faculty_name[:i].strip()
+        except ValueError:
+            return faculty_name
+
     def _get_faculty_info(item: dict) -> dict:
         faculty_name = item['faculty']
+        faculty_shorthand = _get_faculty_shorthand(faculty_name)
         groups = item['groups']
 
         # напрвление, курс, группы
@@ -54,13 +65,13 @@ def _get_groups_info():
             })
 
         return {
-            'faculty_name': faculty_name,
+            'faculty_name': faculty_shorthand,
             'faculty_info': faculty_info
         }
 
     data = requests.get(_URL + '/vyatsu/v2/groups/by_faculty.json').json()
     info = {
-        _get_faculty_info(item)['faculty_name'][:6]: _get_faculty_info(item)['faculty_info'] for item in data
+        _get_faculty_info(item)['faculty_name']: _get_faculty_info(item)['faculty_info'] for item in data
     }
 
     return info
@@ -90,6 +101,11 @@ def _command_calls(request: ViberMessageRequest, bot: Api):
 
 def _command_select_group(request: ViberMessageRequest, bot: Api):
     _logger.info("Processing command 'select_group'")
+
+    bot.send_messages(request.sender.id, [
+        TextMessage(text='Выберите факультет')
+    ])
+
     faculty_buttons = [
         buttons.create_button(
             3,
@@ -104,13 +120,17 @@ def _command_select_group(request: ViberMessageRequest, bot: Api):
     ]
 
     bot.send_messages(request.sender.id, [
-        TextMessage(text='Выберите факультет'),
         keyboards.create_keyboard(faculty_buttons)
     ])
 
 
 def _command_select_faculty(request: ViberMessageRequest, bot: Api):
     _logger.info("Processing command 'select_faculty'")
+
+    bot.send_messages(request.sender.id, [
+        TextMessage(text='Выберите напрвление')
+    ])
+
     command = _parse_action(request.message.text)
     faculty_name = command['data']['faculty_name']
 
@@ -128,13 +148,17 @@ def _command_select_faculty(request: ViberMessageRequest, bot: Api):
     ]
 
     bot.send_messages(request.sender.id, [
-        TextMessage(text='Выберите напрвление'),
         keyboards.create_keyboard(spec_buttons)
     ])
 
 
 def _command_select_spec(request: ViberMessageRequest, bot: Api):
     _logger.info("Processing command 'select_spec'")
+
+    bot.send_messages(request.sender.id, [
+        TextMessage(text='Выберите курс')
+    ])
+
     command = _parse_action(request.message.text)
     faculty_name = command['data']['faculty_name']
     spec = command['data']['spec']
@@ -153,13 +177,17 @@ def _command_select_spec(request: ViberMessageRequest, bot: Api):
     ]
 
     bot.send_messages(request.sender.id, [
-        TextMessage(text='Выберите курс'),
         keyboards.create_keyboard(course_buttons)
     ])
 
 
 def _command_select_course(request: ViberMessageRequest, bot: Api):
     _logger.info("Processing command 'select_course'")
+
+    bot.send_messages(request.sender.id, [
+        TextMessage(text='Выберите группу')
+    ])
+
     command = _parse_action(request.message.text)
     faculty_name = command['data']['faculty_name']
     spec = command['data']['spec']
@@ -173,13 +201,15 @@ def _command_select_course(request: ViberMessageRequest, bot: Api):
             group['name'],
             {
                 'action': command['action'],
-                'data': {**command['data'], **{'group_id': group['id'], 'group_name': group['name']}}
+                'data': {**command['data'], **{
+                    'group_id': group['id'],
+                    'group_name': group['name']
+                }}
             }
         ) for group in _GROUPS_INFO[faculty_name][spec][course]
     ]
 
     bot.send_messages(request.sender.id, [
-        TextMessage(text='Выберите группу'),
         keyboards.create_keyboard(group_buttons)
     ])
 
@@ -192,7 +222,21 @@ def _command_select_group_id(request: ViberMessageRequest, bot: Api):
     group_name = command['data']['group_name']
 
     bot.send_messages(request.sender.id, [
-        TextMessage(text='Отлично! Ваша группа: {} ({})'.format(group_name, group_id))
+        TextMessage(text='Отлично! Ваша группа: {}'.format(group_name, group_id)),
+        keyboards.GREETING
+    ])
+
+    user_info.set_selected_group_id(request.sender.id, group_id)
+
+
+def _command_schedule_url(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command 'select_group_id'")
+
+    group_id = user_info.get_selected_group_id(request.sender.id)
+
+    bot.send_messages(request.sender.id, [
+        URLMessage(media='https://vyatsuschedule.herokuapp.com/mobile/{}/spring'.format(group_id)),
+        keyboards.GREETING
     ])
 
 
@@ -203,7 +247,9 @@ def process_subscribe_request(request: ViberSubscribedRequest, bot: Api):
 
 
 def process_conversation_started_request(request: ViberConversationStartedRequest, bot: Api):
-    process_subscribe_request(request, bot)
+    bot.send_messages(request.user.id, [
+        keyboards.GREETING
+    ])
 
 
 def process_message_request(request: ViberMessageRequest, bot: Api):
@@ -231,7 +277,4 @@ def process_message_request(request: ViberMessageRequest, bot: Api):
     elif command['action'] == 'select_group_id':
         _command_select_group_id(request, bot)
     elif command['action'] == 'schedule_url':
-        bot.send_messages(request.sender.id, [
-            TextMessage(text='Еще не умею'),
-            keyboards.GREETING
-        ])
+        _command_schedule_url(request, bot)

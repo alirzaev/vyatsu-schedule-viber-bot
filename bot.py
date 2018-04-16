@@ -13,21 +13,17 @@ from viberbot.api.viber_requests import ViberMessageRequest
 from viberbot.api.viber_requests import ViberSubscribedRequest
 
 import processing
+import misc
 
 PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
 TOKEN = getenv('TOKEN')
 WEB_HOOK_URL = getenv('WEB_HOOK_URL')
 if WEB_HOOK_URL is None:
-    WEB_HOOK_URL = 'https://3e32c380.ngrok.io' #input('Enter webhook url: ').strip()
+    WEB_HOOK_URL = 'https://0034f6f1.ngrok.io' #input('Enter webhook url: ').strip()
 
 # Configure logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger = misc.get_logger('bot-main')
 
 app = Flask(__name__)
 viber = Api(BotConfiguration(
@@ -39,11 +35,7 @@ viber = Api(BotConfiguration(
 
 @app.route('/', methods=['POST'])
 def incoming():
-    logger.debug("received request. post data: {0}".format(request.get_data()))
-
     viber_request = viber.parse_request(request.get_data(as_text=True))
-
-    logger.info('Processing message {}'.format(viber_request))
 
     if isinstance(viber_request, ViberMessageRequest):
         processing.process_message_request(viber_request, viber)

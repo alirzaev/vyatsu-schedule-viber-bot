@@ -6,8 +6,7 @@ MONGODB_URI = getenv('MONGODB_URI')
 _COLLECTION_NAME = 'user_info'
 
 _client = pymongo.MongoClient(MONGODB_URI)
-_database_name = _client.database_names()[0]
-_database = _client[_database_name]
+_database = _client.get_database()
 
 
 def get_selected_group_id(user_id: str) -> Optional[str]:
