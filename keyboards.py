@@ -14,3 +14,14 @@ GREETING = KeyboardMessage(
         ]
     }
 )
+
+
+def create_keyboard(buttons: list) -> KeyboardMessage:
+    return KeyboardMessage(
+        keyboard={
+            "DefaultHeight": True,
+            "BgColor": "#FFFFFF",
+            "Type": "keyboard",
+            "Buttons": buttons
+        }
+    )

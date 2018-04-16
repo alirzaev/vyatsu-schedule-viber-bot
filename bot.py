@@ -19,7 +19,7 @@ HOST = getenv('IP', '0.0.0.0')
 TOKEN = getenv('TOKEN')
 WEB_HOOK_URL = getenv('WEB_HOOK_URL')
 if WEB_HOOK_URL is None:
-    WEB_HOOK_URL = 'https://7ea55ae1.ngrok.io' #input('Enter webhook url: ').strip()
+    WEB_HOOK_URL = 'https://3e32c380.ngrok.io' #input('Enter webhook url: ').strip()
 
 # Configure logging
 logger = logging.getLogger()
