@@ -18,6 +18,8 @@ import buttons
 PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
 WEB_HOOK_URL = getenv('WEB_HOOK_URL')
+if WEB_HOOK_URL is None:
+    WEB_HOOK_URL = input('Enter webhook url: ')
 
 # Configure logging
 logger = logging.getLogger()
