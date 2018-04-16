@@ -20,11 +20,15 @@ BUTTON_CALLS = create_button(3, 'Звонки', {
     'action': 'calls'
 })
 
-BUTTON_SCHEDULE_URL = create_button(6, 'Посмотреть на сайте', {
+BUTTON_SCHEDULE_URL = create_button(3, 'Посмотреть на сайте', {
     'action': 'schedule_url'
 })
 
 BUTTON_SELECT_GROUP = create_button(3, 'Выбрать группу', {
     'action': 'select_group',
     'data': {}
+})
+
+BUTTON_SCHEDULE = create_button(3, 'Расписание', {
+    'action': 'schedule_today'
 })

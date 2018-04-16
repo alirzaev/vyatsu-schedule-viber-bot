@@ -30,7 +30,7 @@ def _get_groups_info():
         group_id = item['id']
         group_name = item['name']
 
-        m = re.search(r'(\w+)\-(\d+)\-\d+\-\d+', group_name)
+        m = re.search(r'(\w+)-(\d+)-\d+-\d+', group_name)
         spec = m.group(1)[:-1]
         course = m.group(2)[0]
 
@@ -116,7 +116,7 @@ def _command_select_group(request: ViberMessageRequest, bot: Api):
                     'faculty_name': faculty_name
                 }
             }
-        ) for faculty_name in _GROUPS_INFO.keys()
+        ) for faculty_name in sorted(_GROUPS_INFO.keys())
     ]
 
     bot.send_messages(request.sender.id, [
@@ -144,7 +144,7 @@ def _command_select_faculty(request: ViberMessageRequest, bot: Api):
                 'action': command['action'],
                 'data': {**command['data'], **{'spec': spec}}
             }
-        ) for spec in _GROUPS_INFO[faculty_name].keys()
+        ) for spec in sorted(_GROUPS_INFO[faculty_name].keys())
     ]
 
     bot.send_messages(request.sender.id, [
@@ -173,7 +173,7 @@ def _command_select_spec(request: ViberMessageRequest, bot: Api):
                 'action': command['action'],
                 'data': {**command['data'], **{'course': course}}
             }
-        ) for course in _GROUPS_INFO[faculty_name][spec].keys()
+        ) for course in sorted(_GROUPS_INFO[faculty_name][spec].keys())
     ]
 
     bot.send_messages(request.sender.id, [
@@ -206,7 +206,7 @@ def _command_select_course(request: ViberMessageRequest, bot: Api):
                     'group_name': group['name']
                 }}
             }
-        ) for group in _GROUPS_INFO[faculty_name][spec][course]
+        ) for group in sorted(_GROUPS_INFO[faculty_name][spec][course], key=lambda value: value['name'])
     ]
 
     bot.send_messages(request.sender.id, [
@@ -230,7 +230,7 @@ def _command_select_group_id(request: ViberMessageRequest, bot: Api):
 
 
 def _command_schedule_url(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command 'select_group_id'")
+    _logger.info("Processing command 'schedule_url'")
 
     group_id = user_info.get_selected_group_id(request.sender.id)
 
@@ -238,6 +238,28 @@ def _command_schedule_url(request: ViberMessageRequest, bot: Api):
         URLMessage(media='https://vyatsuschedule.herokuapp.com/mobile/{}/spring'.format(group_id)),
         keyboards.GREETING
     ])
+
+
+def _command_schedule_today(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command 'schedule_today'")
+
+    group_id = user_info.get_selected_group_id(request.sender.id)
+    if group_id is not None:
+        data = requests.get(_URL + '/vyatsu/schedule/{}/spring'.format(group_id)).json()
+        week, day = misc.get_current_day(data['date_range'][0])
+        text = '\n'.join(
+            '{}) {}'.format(i + 1, item) for i, item in enumerate(data['weeks'][week][day])
+        )
+
+        bot.send_messages(request.sender.id, [
+            TextMessage(text=text),
+            keyboards.GREETING
+        ])
+    else:
+        bot.send_messages(request.sender.id, [
+            TextMessage(text='Выберите сначала группу'),
+            keyboards.GREETING
+        ])
 
 
 def process_subscribe_request(request: ViberSubscribedRequest, bot: Api):
@@ -278,3 +300,5 @@ def process_message_request(request: ViberMessageRequest, bot: Api):
         _command_select_group_id(request, bot)
     elif command['action'] == 'schedule_url':
         _command_schedule_url(request, bot)
+    elif command['action'] == 'schedule_today':
+        _command_schedule_today(request, bot)
