@@ -5,10 +5,10 @@ def create_button(width: int, text: str, action: dict) -> dict:
     return {
         "Columns": width,
         "Rows": 1,
-        "BgColor": "#2db9b9",
+        "BgColor": "#574e92",
         "ActionType": "reply",
         "ActionBody": dumps(action, ensure_ascii=False),
-        "Text": text,
+        "Text": r'<font color="#FFFFFF">{}</font>'.format(text),
         "TextVAlign": "middle",
         "TextHAlign": "center",
         "TextOpacity": 60,
