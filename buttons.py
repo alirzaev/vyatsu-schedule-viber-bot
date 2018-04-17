@@ -11,7 +11,7 @@ def create_button(width: int, text: str, action: dict) -> dict:
         "Text": r'<font color="#FFFFFF">{}</font>'.format(text),
         "TextVAlign": "middle",
         "TextHAlign": "center",
-        "TextOpacity": 60,
+        "TextOpacity": 90,
         "TextSize": "regular"
     }
 
