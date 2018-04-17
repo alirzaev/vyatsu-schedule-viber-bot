@@ -14,7 +14,6 @@ from viberbot.api.viber_requests import (
     ViberConversationStartedRequest
 )
 
-import buttons
 import keyboards
 import misc
 import user_info
@@ -117,7 +116,7 @@ def _action_select_group(request: ViberMessageRequest, bot: Api):
     ])
 
     faculty_buttons = [
-        buttons.create_button(
+        keyboards.create_button(
             3,
             faculty_name,
             {
@@ -145,7 +144,7 @@ def _action_select_faculty(request: ViberMessageRequest, bot: Api):
     faculty_name = command['data']['faculty_name']
 
     spec_buttons = [
-        buttons.create_button(
+        keyboards.create_button(
             2,
             spec,
             {
@@ -172,7 +171,7 @@ def _action_select_spec(request: ViberMessageRequest, bot: Api):
     spec = command['data']['spec']
 
     course_buttons = [
-        buttons.create_button(
+        keyboards.create_button(
             2,
             course,
             {
@@ -200,7 +199,7 @@ def _action_select_course(request: ViberMessageRequest, bot: Api):
     course = command['data']['course']
 
     group_buttons = [
-        buttons.create_button(
+        keyboards.create_button(
             3,
             group['name'],
             {

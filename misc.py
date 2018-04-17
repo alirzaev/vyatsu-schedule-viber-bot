@@ -24,7 +24,7 @@ def get_current_day(first_date: str) -> tuple:
     week = diff // 7
     day = diff % 7
 
-    if day > 5: # sunday
+    if day > 5:  # sunday
         day = (day + 1) % 7
         week = (week + 1) % 2
 
