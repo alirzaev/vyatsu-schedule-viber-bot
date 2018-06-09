@@ -1,4 +1,3 @@
-import logging
 import sched
 import threading
 import time
@@ -7,13 +6,15 @@ from os import getenv
 from flask import Flask, request, Response
 from viberbot import Api
 from viberbot.api.bot_configuration import BotConfiguration
-from viberbot.api.viber_requests import ViberConversationStartedRequest
-from viberbot.api.viber_requests import ViberFailedRequest
-from viberbot.api.viber_requests import ViberMessageRequest
-from viberbot.api.viber_requests import ViberSubscribedRequest
+from viberbot.api.viber_requests import (
+    ViberConversationStartedRequest,
+    ViberFailedRequest,
+    ViberMessageRequest,
+    ViberSubscribedRequest
+)
 
-import processing
 import misc
+import processing
 
 PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
@@ -44,7 +45,7 @@ def incoming():
     elif isinstance(viber_request, ViberSubscribedRequest):
         processing.process_subscribe_request(viber_request, viber)
     elif isinstance(viber_request, ViberFailedRequest):
-        logger.warning("client failed receiving message. failure: {0}".format(viber_request))
+        logger.warning('client failed receiving message. failure: {0}'.format(viber_request))
 
     return Response(status=200)
 
@@ -53,7 +54,7 @@ def set_web_hook(bot_instance):
     bot_instance.set_webhook(WEB_HOOK_URL)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     scheduler = sched.scheduler(time.time, time.sleep)
     scheduler.enter(5, 1, set_web_hook, (viber,))
     t = threading.Thread(target=scheduler.run)

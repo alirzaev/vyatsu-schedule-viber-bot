@@ -1,5 +1,5 @@
+import re
 from json import loads, JSONDecodeError
-from logging import getLogger, INFO
 from typing import Optional
 
 import requests
@@ -15,14 +15,23 @@ from viberbot.api.viber_requests import (
 )
 
 import keyboards
-import buttons
-import user_info
 import misc
-import re
+import user_info
 
 _URL = 'https://api.vyatsuschedule.ru'
 
 _logger = misc.get_logger('bot-processing')
+
+
+class _ACTIONS:
+    CALLS = 'calls'
+    SELECT_GROUP = 'select_group'
+    SELECT_FACULTY = 'select_faculty'
+    SELECT_SPEC = 'select_spec'
+    SELECT_COURSE = 'select_course'
+    SELECT_GROUP_ID = 'select_group_id'
+    SCHEDULE_URL = 'schedule_url'
+    SCHEDULE_TODAY = 'schedule_today'
 
 
 def _get_groups_info():
@@ -87,7 +96,7 @@ def _parse_action(action: str) -> Optional[dict]:
         return None
 
 
-def _command_calls(request: ViberMessageRequest, bot: Api):
+def _action_calls(request: ViberMessageRequest, bot: Api):
     data = requests.get(_URL + '/vyatsu/calls').json()
     calls = \
         'Звонки:\n' + \
@@ -99,19 +108,19 @@ def _command_calls(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _command_select_group(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command 'select_group'")
+def _action_select_group(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_GROUP))
 
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите факультет')
     ])
 
     faculty_buttons = [
-        buttons.create_button(
+        keyboards.create_button(
             3,
             faculty_name,
             {
-                'action': 'select_faculty',
+                'action': _ACTIONS.SELECT_FACULTY,
                 'data': {
                     'faculty_name': faculty_name
                 }
@@ -124,8 +133,8 @@ def _command_select_group(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _command_select_faculty(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command 'select_faculty'")
+def _action_select_faculty(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_FACULTY))
 
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите напрвление')
@@ -134,14 +143,12 @@ def _command_select_faculty(request: ViberMessageRequest, bot: Api):
     command = _parse_action(request.message.text)
     faculty_name = command['data']['faculty_name']
 
-    command['action'] = 'select_spec'
-
     spec_buttons = [
-        buttons.create_button(
+        keyboards.create_button(
             2,
             spec,
             {
-                'action': command['action'],
+                'action': _ACTIONS.SELECT_SPEC,
                 'data': {**command['data'], **{'spec': spec}}
             }
         ) for spec in sorted(_GROUPS_INFO[faculty_name].keys())
@@ -152,8 +159,8 @@ def _command_select_faculty(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _command_select_spec(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command 'select_spec'")
+def _action_select_spec(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_SPEC))
 
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите курс')
@@ -163,14 +170,12 @@ def _command_select_spec(request: ViberMessageRequest, bot: Api):
     faculty_name = command['data']['faculty_name']
     spec = command['data']['spec']
 
-    command['action'] = 'select_course'
-
     course_buttons = [
-        buttons.create_button(
+        keyboards.create_button(
             2,
             course,
             {
-                'action': command['action'],
+                'action': _ACTIONS.SELECT_COURSE,
                 'data': {**command['data'], **{'course': course}}
             }
         ) for course in sorted(_GROUPS_INFO[faculty_name][spec].keys())
@@ -181,8 +186,8 @@ def _command_select_spec(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _command_select_course(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command 'select_course'")
+def _action_select_course(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_COURSE))
 
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите группу')
@@ -193,14 +198,12 @@ def _command_select_course(request: ViberMessageRequest, bot: Api):
     spec = command['data']['spec']
     course = command['data']['course']
 
-    command['action'] = 'select_group_id'
-
     group_buttons = [
-        buttons.create_button(
+        keyboards.create_button(
             3,
             group['name'],
             {
-                'action': command['action'],
+                'action': _ACTIONS.SELECT_GROUP_ID,
                 'data': {**command['data'], **{
                     'group_id': group['id'],
                     'group_name': group['name']
@@ -214,8 +217,8 @@ def _command_select_course(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _command_select_group_id(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command 'select_group_id'")
+def _action_select_group_id(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_GROUP_ID))
     command = _parse_action(request.message.text)
 
     group_id = command['data']['group_id']
@@ -229,8 +232,8 @@ def _command_select_group_id(request: ViberMessageRequest, bot: Api):
     user_info.set_selected_group_id(request.sender.id, group_id)
 
 
-def _command_schedule_url(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command 'schedule_url'")
+def _action_schedule_url(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command '{}'".format(_ACTIONS.SCHEDULE_URL))
 
     group_id = user_info.get_selected_group_id(request.sender.id)
 
@@ -240,15 +243,15 @@ def _command_schedule_url(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _command_schedule_today(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command 'schedule_today'")
+def _action_schedule_today(request: ViberMessageRequest, bot: Api):
+    _logger.info("Processing command '{}'".format(_ACTIONS.SCHEDULE_TODAY))
 
     group_id = user_info.get_selected_group_id(request.sender.id)
     if group_id is not None:
         data = requests.get(_URL + '/vyatsu/schedule/{}/spring'.format(group_id)).json()
         week, day = misc.get_current_day(data['date_range'][0])
         text = '\n'.join(
-            '{}) {}'.format(i + 1, item) for i, item in enumerate(data['weeks'][week][day])
+            '{}) {}'.format(i + 1, item) for i, item in enumerate(data['weeks'][week][day]) if item.strip() != ''
         )
 
         bot.send_messages(request.sender.id, [
@@ -286,19 +289,21 @@ def process_message_request(request: ViberMessageRequest, bot: Api):
         ])
         return
 
-    if command['action'] == 'calls':
-        _command_calls(request, bot)
-    elif command['action'] == 'select_group':
-        _command_select_group(request, bot)
-    elif command['action'] == 'select_faculty':
-        _command_select_faculty(request, bot)
-    elif command['action'] == 'select_spec':
-        _command_select_spec(request, bot)
-    elif command['action'] == 'select_course':
-        _command_select_course(request, bot)
-    elif command['action'] == 'select_group_id':
-        _command_select_group_id(request, bot)
-    elif command['action'] == 'schedule_url':
-        _command_schedule_url(request, bot)
-    elif command['action'] == 'schedule_today':
-        _command_schedule_today(request, bot)
+    action = command['action']
+
+    if action == _ACTIONS.CALLS:
+        _action_calls(request, bot)
+    elif action == _ACTIONS.SELECT_GROUP:
+        _action_select_group(request, bot)
+    elif action == _ACTIONS.SELECT_FACULTY:
+        _action_select_faculty(request, bot)
+    elif action == _ACTIONS.SELECT_SPEC:
+        _action_select_spec(request, bot)
+    elif action == _ACTIONS.SELECT_COURSE:
+        _action_select_course(request, bot)
+    elif action == _ACTIONS.SELECT_GROUP_ID:
+        _action_select_group_id(request, bot)
+    elif action == _ACTIONS.SCHEDULE_URL:
+        _action_schedule_url(request, bot)
+    elif action == _ACTIONS.SCHEDULE_TODAY:
+        _action_schedule_today(request, bot)
