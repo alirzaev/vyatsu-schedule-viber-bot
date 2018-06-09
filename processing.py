@@ -20,7 +20,7 @@ import user_info
 import misc
 import re
 
-_URL = 'https://vyatsuscheduleapi.herokuapp.com'
+_URL = 'https://api.vyatsuschedule.ru'
 
 _logger = misc.get_logger('bot-processing')
 
