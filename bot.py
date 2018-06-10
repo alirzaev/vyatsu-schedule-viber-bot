@@ -20,8 +20,6 @@ PORT = int(getenv('PORT', 8080))
 HOST = getenv('IP', '0.0.0.0')
 TOKEN = getenv('TOKEN')
 WEB_HOOK_URL = getenv('WEB_HOOK_URL')
-if WEB_HOOK_URL is None:
-    WEB_HOOK_URL = 'https://0034f6f1.ngrok.io' #input('Enter webhook url: ').strip()
 
 # Configure logging
 logger = misc.get_logger('bot-main')
@@ -54,10 +52,10 @@ def set_web_hook(bot_instance):
     bot_instance.set_webhook(WEB_HOOK_URL)
 
 
-if __name__ == '__main__':
-    scheduler = sched.scheduler(time.time, time.sleep)
-    scheduler.enter(5, 1, set_web_hook, (viber,))
-    t = threading.Thread(target=scheduler.run)
-    t.start()
+scheduler = sched.scheduler(time.time, time.sleep)
+scheduler.enter(5, 1, set_web_hook, (viber,))
+t = threading.Thread(target=scheduler.run)
+t.start()
 
+if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
