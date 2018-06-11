@@ -238,7 +238,7 @@ def _action_schedule_url(request: ViberMessageRequest, bot: Api):
     group_id = user_info.get_selected_group_id(request.sender.id)
 
     bot.send_messages(request.sender.id, [
-        URLMessage(media='https://vyatsuschedule.herokuapp.com/mobile/{}/spring'.format(group_id)),
+        URLMessage(media='https://vyatsuschedule.ru/mobile/{}/spring'.format(group_id)),
         keyboards.GREETING
     ])
 
