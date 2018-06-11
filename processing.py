@@ -253,6 +253,8 @@ def _action_schedule_today(request: ViberMessageRequest, bot: Api):
         text = '\n'.join(
             '{}) {}'.format(i + 1, item) for i, item in enumerate(data['weeks'][week][day]) if item.strip() != ''
         )
+        if text.strip() == '':
+            text = 'Занятий сегодня нет'
 
         bot.send_messages(request.sender.id, [
             TextMessage(text=text),
