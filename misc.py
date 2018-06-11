@@ -21,7 +21,7 @@ def get_current_day(first_date: str) -> tuple:
     first = datetime.date(y, m, d)
 
     diff = (today - first).days
-    week = diff // 7
+    week = (diff // 7) % 2
     day = diff % 7
 
     if day > 5:  # sunday
