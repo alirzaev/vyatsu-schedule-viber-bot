@@ -97,6 +97,10 @@ def _parse_action(action: str) -> Optional[dict]:
 
 
 def _action_calls(request: ViberMessageRequest, bot: Api):
+    bot.send_messages(request.sender.id, [
+        keyboards.GREETING
+    ])
+
     data = api.get_calls()
     calls = \
         'Звонки:\n' + \
@@ -235,6 +239,10 @@ def _action_select_group_id(request: ViberMessageRequest, bot: Api):
 def _action_schedule_url(request: ViberMessageRequest, bot: Api):
     _logger.info("Processing command '{}'".format(_ACTIONS.SCHEDULE_URL))
 
+    bot.send_messages(request.sender.id, [
+        keyboards.GREETING
+    ])
+
     group_id = user_info.get_selected_group_id(request.sender.id)
 
     bot.send_messages(request.sender.id, [
@@ -245,6 +253,10 @@ def _action_schedule_url(request: ViberMessageRequest, bot: Api):
 
 def _action_schedule_today(request: ViberMessageRequest, bot: Api):
     _logger.info("Processing command '{}'".format(_ACTIONS.SCHEDULE_TODAY))
+
+    bot.send_messages(request.sender.id, [
+        keyboards.GREETING
+    ])
 
     group_id = user_info.get_selected_group_id(request.sender.id)
     if group_id is not None:
