@@ -13,9 +13,7 @@ from viberbot.api.viber_requests import (
     ViberConversationStartedRequest
 )
 
-import api
-import keyboards
-import logs
+from utils import api, keyboards, logs
 from models import user_info
 
 _logger = logs.get_logger('bot-processing')

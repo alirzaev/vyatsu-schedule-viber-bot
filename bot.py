@@ -13,7 +13,7 @@ from viberbot.api.viber_requests import (
     ViberSubscribedRequest
 )
 
-import logs
+from utils import logs
 import processing
 
 PORT = int(getenv('PORT', 8080))
