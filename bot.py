@@ -17,7 +17,6 @@ from utils import logs
 import processing
 
 PORT = int(getenv('PORT', 8080))
-HOST = getenv('IP', '0.0.0.0')
 TOKEN = getenv('TOKEN')
 WEB_HOOK_URL = getenv('WEB_HOOK_URL')
 
@@ -58,4 +57,4 @@ t = threading.Thread(target=scheduler.run)
 t.start()
 
 if __name__ == '__main__':
-    app.run(host=HOST, port=PORT, debug=True)
+    app.run(port=PORT, debug=True)
