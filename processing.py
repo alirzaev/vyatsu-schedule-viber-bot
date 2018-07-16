@@ -96,7 +96,8 @@ def _parse_action(action: str) -> Optional[dict]:
         return None
 
 
-def _action_calls(request: ViberMessageRequest, bot: Api):
+@misc.log_to_mongo
+def _action_calls(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         keyboards.GREETING
     ])
@@ -112,9 +113,8 @@ def _action_calls(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _action_select_group(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_GROUP))
-
+@misc.log_to_mongo
+def _action_select_group(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите факультет')
     ])
@@ -137,14 +137,12 @@ def _action_select_group(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _action_select_faculty(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_FACULTY))
-
+@misc.log_to_mongo
+def _action_select_faculty(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите напрвление')
     ])
 
-    command = _parse_action(request.message.text)
     faculty_name = command['data']['faculty_name']
 
     spec_buttons = [
@@ -163,14 +161,12 @@ def _action_select_faculty(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _action_select_spec(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_SPEC))
-
+@misc.log_to_mongo
+def _action_select_spec(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите курс')
     ])
 
-    command = _parse_action(request.message.text)
     faculty_name = command['data']['faculty_name']
     spec = command['data']['spec']
 
@@ -190,14 +186,12 @@ def _action_select_spec(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _action_select_course(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_COURSE))
-
+@misc.log_to_mongo
+def _action_select_course(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите группу')
     ])
 
-    command = _parse_action(request.message.text)
     faculty_name = command['data']['faculty_name']
     spec = command['data']['spec']
     course = command['data']['course']
@@ -221,24 +215,21 @@ def _action_select_course(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _action_select_group_id(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command '{}'".format(_ACTIONS.SELECT_GROUP_ID))
-    command = _parse_action(request.message.text)
-
+@misc.log_to_mongo
+def _action_select_group_id(request: ViberMessageRequest, command: dict, bot: Api):
     group_id = command['data']['group_id']
     group_name = command['data']['group_name']
 
     bot.send_messages(request.sender.id, [
-        TextMessage(text='Отлично! Ваша группа: {}'.format(group_name, group_id)),
+        TextMessage(text=f'Отлично! Ваша группа: {group_name}'),
         keyboards.GREETING
     ])
 
     user_info.set_selected_group_id(request.sender.id, group_id)
 
 
-def _action_schedule_url(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command '{}'".format(_ACTIONS.SCHEDULE_URL))
-
+@misc.log_to_mongo
+def _action_schedule_url(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         keyboards.GREETING
     ])
@@ -251,9 +242,8 @@ def _action_schedule_url(request: ViberMessageRequest, bot: Api):
     ])
 
 
-def _action_schedule_today(request: ViberMessageRequest, bot: Api):
-    _logger.info("Processing command '{}'".format(_ACTIONS.SCHEDULE_TODAY))
-
+@misc.log_to_mongo
+def _action_schedule_today(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         keyboards.GREETING
     ])
@@ -283,13 +273,22 @@ def _action_schedule_today(request: ViberMessageRequest, bot: Api):
         ])
 
 
+def _on_exception(request: ViberMessageRequest, bot: Api):
+    bot.send_messages(request.sender.id, [
+        TextMessage(text='Упс, ошибка вышла :('),
+        keyboards.GREETING
+    ])
+
+
 def process_subscribe_request(request: ViberSubscribedRequest, bot: Api):
+    _logger.info(f'Processing subscribe request from {request.user.id}')
     bot.send_messages(request.user.id, [
         keyboards.GREETING
     ])
 
 
 def process_conversation_started_request(request: ViberConversationStartedRequest, bot: Api):
+    _logger.info(f'Processing conversation started request from {request.user.id}')
     bot.send_messages(request.user.id, [
         keyboards.GREETING
     ])
@@ -297,7 +296,7 @@ def process_conversation_started_request(request: ViberConversationStartedReques
 
 def process_message_request(request: ViberMessageRequest, bot: Api):
     message = request.message
-    _logger.info('Processing message request: {}'.format(message.text))
+    _logger.info(f'Processing message request: {message.text} from {request.sender.id}')
     command = _parse_action(message.text)
 
     if command is None:
@@ -309,19 +308,23 @@ def process_message_request(request: ViberMessageRequest, bot: Api):
 
     action = command['action']
 
-    if action == _ACTIONS.CALLS:
-        _action_calls(request, bot)
-    elif action == _ACTIONS.SELECT_GROUP:
-        _action_select_group(request, bot)
-    elif action == _ACTIONS.SELECT_FACULTY:
-        _action_select_faculty(request, bot)
-    elif action == _ACTIONS.SELECT_SPEC:
-        _action_select_spec(request, bot)
-    elif action == _ACTIONS.SELECT_COURSE:
-        _action_select_course(request, bot)
-    elif action == _ACTIONS.SELECT_GROUP_ID:
-        _action_select_group_id(request, bot)
-    elif action == _ACTIONS.SCHEDULE_URL:
-        _action_schedule_url(request, bot)
-    elif action == _ACTIONS.SCHEDULE_TODAY:
-        _action_schedule_today(request, bot)
+    try:
+        if action == _ACTIONS.CALLS:
+            _action_calls(request, command, bot)
+        elif action == _ACTIONS.SELECT_GROUP:
+            _action_select_group(request, command, bot)
+        elif action == _ACTIONS.SELECT_FACULTY:
+            _action_select_faculty(request, command, bot)
+        elif action == _ACTIONS.SELECT_SPEC:
+            _action_select_spec(request, command, bot)
+        elif action == _ACTIONS.SELECT_COURSE:
+            _action_select_course(request, command, bot)
+        elif action == _ACTIONS.SELECT_GROUP_ID:
+            _action_select_group_id(request, command, bot)
+        elif action == _ACTIONS.SCHEDULE_URL:
+            _action_schedule_url(request, command, bot)
+        elif action == _ACTIONS.SCHEDULE_TODAY:
+            _action_schedule_today(request, command, bot)
+    except Exception as ex:
+        _logger.exception('Error occurred during request processing', exc_info=ex)
+        _on_exception(request, bot)
