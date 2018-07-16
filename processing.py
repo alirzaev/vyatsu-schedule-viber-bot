@@ -15,10 +15,10 @@ from viberbot.api.viber_requests import (
 
 import api
 import keyboards
-import misc
+import logs
 from models import user_info
 
-_logger = misc.get_logger('bot-processing')
+_logger = logs.get_logger('bot-processing')
 
 
 class _ACTIONS:
@@ -96,7 +96,7 @@ def _parse_action(action: str) -> Optional[dict]:
         return None
 
 
-@misc.log_to_mongo
+@logs.log_to_mongo
 def _action_calls(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         keyboards.GREETING
@@ -113,7 +113,7 @@ def _action_calls(request: ViberMessageRequest, command: dict, bot: Api):
     ])
 
 
-@misc.log_to_mongo
+@logs.log_to_mongo
 def _action_select_group(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите факультет')
@@ -137,7 +137,7 @@ def _action_select_group(request: ViberMessageRequest, command: dict, bot: Api):
     ])
 
 
-@misc.log_to_mongo
+@logs.log_to_mongo
 def _action_select_faculty(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите напрвление')
@@ -161,7 +161,7 @@ def _action_select_faculty(request: ViberMessageRequest, command: dict, bot: Api
     ])
 
 
-@misc.log_to_mongo
+@logs.log_to_mongo
 def _action_select_spec(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите курс')
@@ -186,7 +186,7 @@ def _action_select_spec(request: ViberMessageRequest, command: dict, bot: Api):
     ])
 
 
-@misc.log_to_mongo
+@logs.log_to_mongo
 def _action_select_course(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Выберите группу')
@@ -215,7 +215,7 @@ def _action_select_course(request: ViberMessageRequest, command: dict, bot: Api)
     ])
 
 
-@misc.log_to_mongo
+@logs.log_to_mongo
 def _action_select_group_id(request: ViberMessageRequest, command: dict, bot: Api):
     group_id = command['data']['group_id']
     group_name = command['data']['group_name']
@@ -228,7 +228,7 @@ def _action_select_group_id(request: ViberMessageRequest, command: dict, bot: Ap
     user_info.set_selected_group_id(request.sender.id, group_id)
 
 
-@misc.log_to_mongo
+@logs.log_to_mongo
 def _action_schedule_url(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         keyboards.GREETING
@@ -242,7 +242,7 @@ def _action_schedule_url(request: ViberMessageRequest, command: dict, bot: Api):
     ])
 
 
-@misc.log_to_mongo
+@logs.log_to_mongo
 def _action_schedule_today(request: ViberMessageRequest, command: dict, bot: Api):
     bot.send_messages(request.sender.id, [
         keyboards.GREETING

@@ -13,7 +13,7 @@ from viberbot.api.viber_requests import (
     ViberSubscribedRequest
 )
 
-import misc
+import logs
 import processing
 
 PORT = int(getenv('PORT', 8080))
@@ -22,7 +22,7 @@ TOKEN = getenv('TOKEN')
 WEB_HOOK_URL = getenv('WEB_HOOK_URL')
 
 # Configure logging
-logger = misc.get_logger('bot-main')
+logger = logs.get_logger('bot-main')
 
 app = Flask(__name__)
 viber = Api(BotConfiguration(
