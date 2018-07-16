@@ -2,7 +2,6 @@ import re
 from json import loads, JSONDecodeError
 from typing import Optional
 
-import requests
 from viberbot import Api
 from viberbot.api.messages import (
     TextMessage,
@@ -14,11 +13,10 @@ from viberbot.api.viber_requests import (
     ViberConversationStartedRequest
 )
 
+import api
 import keyboards
 import misc
 import user_info
-
-_URL = 'https://api.vyatsuschedule.ru'
 
 _logger = misc.get_logger('bot-processing')
 
@@ -78,7 +76,7 @@ def _get_groups_info():
             'faculty_info': faculty_info
         }
 
-    data = requests.get(_URL + '/vyatsu/v2/groups/by_faculty.json').json()
+    data = api.get_groups()
     info = {
         _get_faculty_info(item)['faculty_name']: _get_faculty_info(item)['faculty_info'] for item in data
     }
@@ -87,6 +85,8 @@ def _get_groups_info():
 
 
 _GROUPS_INFO = _get_groups_info()
+
+_SEASON = api.get_season()
 
 
 def _parse_action(action: str) -> Optional[dict]:
@@ -97,10 +97,10 @@ def _parse_action(action: str) -> Optional[dict]:
 
 
 def _action_calls(request: ViberMessageRequest, bot: Api):
-    data = requests.get(_URL + '/vyatsu/calls').json()
+    data = api.get_calls()
     calls = \
         'Звонки:\n' + \
-        '\n'.join('{}) {} - {}'.format(i + 1, b, e) for i, (b, e) in enumerate(data))
+        '\n'.join(f"{i}) {rng['start']} - {rng['end']}" for i, rng in enumerate(data, 1))
 
     bot.send_messages(request.sender.id, [
         TextMessage(text=calls),
@@ -238,7 +238,7 @@ def _action_schedule_url(request: ViberMessageRequest, bot: Api):
     group_id = user_info.get_selected_group_id(request.sender.id)
 
     bot.send_messages(request.sender.id, [
-        URLMessage(media='https://vyatsuschedule.ru/mobile/{}/spring'.format(group_id)),
+        URLMessage(media=f'https://vyatsuschedule.ru/#/schedule/{group_id}/{_SEASON}'),
         keyboards.GREETING
     ])
 
@@ -248,13 +248,17 @@ def _action_schedule_today(request: ViberMessageRequest, bot: Api):
 
     group_id = user_info.get_selected_group_id(request.sender.id)
     if group_id is not None:
-        data = requests.get(_URL + '/vyatsu/schedule/{}/spring'.format(group_id)).json()
-        week, day = misc.get_current_day(data['date_range'][0])
-        text = '\n'.join(
-            '{}) {}'.format(i + 1, item) for i, item in enumerate(data['weeks'][week][day]) if item.strip() != ''
-        )
-        if text.strip() == '':
+        data = api.get_schedule(group_id, _SEASON)
+        week_index = data['today']['week']
+        day_index = data['today']['dayOfWeek']
+        lessons = data['weeks'][week_index][day_index]
+
+        if all(lesson.strip() == '' for lesson in lessons):
             text = 'Занятий сегодня нет'
+        else:
+            text = '\n'.join(
+                f'{i}) {lesson}' for i, lesson in enumerate(lessons, 1) if lesson.strip() != ''
+            )
 
         bot.send_messages(request.sender.id, [
             TextMessage(text=text),
