@@ -1,6 +1,6 @@
 import logging
 from os import getenv
-from visit import store_action
+from models.visit import store_action
 from json import dumps
 
 
