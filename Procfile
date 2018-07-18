@@ -1,1 +1,1 @@
-web: -b 0.0.0.0:$PORT bot:app_factory --worker-class aiohttp.GunicornWebWorker
+web: gunicorn -b 0.0.0.0:$PORT bot:app_factory --worker-class aiohttp.GunicornWebWorker
