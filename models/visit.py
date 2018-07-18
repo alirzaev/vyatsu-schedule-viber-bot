@@ -1,18 +1,16 @@
-import pymongo
-from os import getenv
 import datetime
 
-MONGODB_URI = getenv('MONGODB_URI')
+from utils.mongodb_config import get_database
+
 _COLLECTION_NAME = 'visit'
 
-_client = pymongo.MongoClient(MONGODB_URI)
-_database = _client.get_database()
+_database = get_database()
 
 
-def store_action(user_id: str, action: str, data: str):
+async def store_action(user_id: str, action: str, data: str):
     collection = _database.get_collection(_COLLECTION_NAME)
 
-    collection.insert_one({
+    await collection.insert_one({
         'viber_id': user_id,
         'action': action,
         'data': data,

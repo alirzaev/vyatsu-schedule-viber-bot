@@ -1,17 +1,15 @@
-import pymongo
-from os import getenv
 from typing import Optional
 
-MONGODB_URI = getenv('MONGODB_URI')
+from utils.mongodb_config import get_database
+
 _COLLECTION_NAME = 'user_info'
 
-_client = pymongo.MongoClient(MONGODB_URI)
-_database = _client.get_database()
+_database = get_database()
 
 
-def get_selected_group_id(user_id: str) -> Optional[str]:
+async def get_selected_group_id(user_id: str) -> Optional[str]:
     collection = _database.get_collection(_COLLECTION_NAME)
-    item = collection.find_one({
+    item = await collection.find_one({
         'userId': user_id
     })
 
@@ -21,7 +19,7 @@ def get_selected_group_id(user_id: str) -> Optional[str]:
         return item['groupId']
 
 
-def set_selected_group_id(user_id: str, group_id: str):
+async def set_selected_group_id(user_id: str, group_id: str):
     collection = _database.get_collection(_COLLECTION_NAME)
     query = {
         'userId': user_id
@@ -31,4 +29,4 @@ def set_selected_group_id(user_id: str, group_id: str):
         'groupId': group_id
     }
 
-    collection.replace_one(query, item, upsert=True)
+    await collection.replace_one(query, item, upsert=True)

@@ -1,6 +1,6 @@
 from json import dumps
 
-from viberbot.api.messages import KeyboardMessage
+from asyncviberbot import keyboard_message
 
 
 def create_button(width: int, text: str, action: dict) -> dict:
@@ -36,15 +36,13 @@ BUTTON_SCHEDULE = create_button(3, 'Расписание', {
 })
 
 
-def create_keyboard(buttons: list) -> KeyboardMessage:
-    return KeyboardMessage(
-        keyboard={
+def create_keyboard(buttons: list) -> dict:
+    return keyboard_message({
             'DefaultHeight': False,
             'BgColor': '#FFFFFF',
             'Type': 'keyboard',
             'Buttons': buttons
-        }
-    )
+    })
 
 
 GREETING = create_keyboard([

@@ -1,20 +1,11 @@
-import sched
-import threading
-import time
 from os import getenv
 
-from flask import Flask, request, Response
-from viberbot import Api
-from viberbot.api.bot_configuration import BotConfiguration
-from viberbot.api.viber_requests import (
-    ViberConversationStartedRequest,
-    ViberFailedRequest,
-    ViberMessageRequest,
-    ViberSubscribedRequest
-)
+from aiohttp import web
+import asyncio
 
-from utils import logs
 import processing
+from asyncviberbot import AsyncApi
+from utils import logs
 
 PORT = int(getenv('PORT', 8080))
 TOKEN = getenv('TOKEN')
@@ -23,38 +14,51 @@ WEB_HOOK_URL = getenv('WEB_HOOK_URL')
 # Configure logging
 logger = logs.get_logger('bot-main')
 
-app = Flask(__name__)
-viber = Api(BotConfiguration(
+viber = AsyncApi(
     name='VyatSU Bot',
-    avatar='',
     auth_token=TOKEN
-))
+)
+
+routes = web.RouteTableDef()
 
 
-@app.route('/', methods=['POST'])
-def incoming():
-    viber_request = viber.parse_request(request.get_data(as_text=True))
+@routes.post('/')
+async def incoming(request: web.Request):
+    viber_request = await request.json()
+    event_type = viber_request['event']
 
-    if isinstance(viber_request, ViberMessageRequest):
-        processing.process_message_request(viber_request, viber)
-    elif isinstance(viber_request, ViberConversationStartedRequest):
-        processing.process_conversation_started_request(viber_request, viber)
-    elif isinstance(viber_request, ViberSubscribedRequest):
-        processing.process_subscribe_request(viber_request, viber)
-    elif isinstance(viber_request, ViberFailedRequest):
+    if event_type == 'message':
+        await processing.process_message_request(viber_request, viber)
+    elif event_type == 'conversation_started':
+        await processing.process_conversation_started_request(viber_request, viber)
+    elif event_type == 'subscribed':
+        await processing.process_subscribe_request(viber_request, viber)
+    elif event_type == 'failed':
         logger.warning('client failed receiving message. failure: {0}'.format(viber_request))
 
-    return Response(status=200)
+    return web.Response()
 
 
-def set_web_hook(bot_instance):
-    bot_instance.set_webhook(WEB_HOOK_URL)
+async def on_startup():
+    asyncio.sleep(5)
+    await viber.set_webhook(WEB_HOOK_URL, [
+        'message',
+        'subscribed',
+        'failed',
+        'conversation_started'
+    ])
 
 
-scheduler = sched.scheduler(time.time, time.sleep)
-scheduler.enter(5, 1, set_web_hook, (viber,))
-t = threading.Thread(target=scheduler.run)
-t.start()
+async def app_factory():
+    await processing.init()
+
+    app = web.Application()
+    app.add_routes(routes)
+
+    asyncio.ensure_future(on_startup())
+
+    return app
+
 
 if __name__ == '__main__':
-    app.run(port=PORT, debug=True)
+    web.run_app(app_factory(), port=PORT)

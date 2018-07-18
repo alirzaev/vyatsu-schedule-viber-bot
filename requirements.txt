@@ -1,5 +1,5 @@
+motor
+aiohttp
 gunicorn
-requests
-flask
-pymongo
+pymongo==3.7.1
 viberbot==1.0.11

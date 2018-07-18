@@ -1,34 +1,33 @@
-import requests
 from os import getenv
-from typing import List, Dict
 
+from aiohttp.client import request
 
 _API_URL = getenv('API_URL')
 
 
-def get_groups() -> List[Dict]:
-    response = requests.get(f'{_API_URL}/api/v2/groups/by_faculty')
-    response.raise_for_status()
+async def get_groups():
+    async with request('GET', f'{_API_URL}/api/v2/groups/by_faculty') as response:
+        response.raise_for_status()
 
-    return response.json()
-
-
-def get_season() -> str:
-    response = requests.get(f'{_API_URL}/api/v2/season/current')
-    response.raise_for_status()
-
-    return response.json()['season']
+        return await response.json()
 
 
-def get_schedule(group_id: str, season: str) -> Dict:
-    response = requests.get(f'{_API_URL}/api/v2/schedule/{group_id}/{season}')
-    response.raise_for_status()
+async def get_season():
+    async with request('GET', f'{_API_URL}/api/v2/season/current') as response:
+        response.raise_for_status()
 
-    return response.json()
+        return (await response.json())['season']
 
 
-def get_calls() -> List:
-    response = requests.get(f'{_API_URL}/api/v2/calls')
-    response.raise_for_status()
+async def get_schedule(group_id: str, season: str):
+    async with request('GET', f'{_API_URL}/api/v2/schedule/{group_id}/{season}') as response:
+        response.raise_for_status()
 
-    return response.json()
+        return await response.json()
+
+
+async def get_calls():
+    async with request('GET', f'{_API_URL}/api/v2/calls') as response:
+        response.raise_for_status()
+
+        return await response.json()

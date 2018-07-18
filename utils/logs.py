@@ -21,18 +21,9 @@ def get_logger(name: str) -> logging.Logger:
     return logger
 
 
-def log_to_mongo(fun):
-    def wrapper(request, command, bot):
-        res = None
-        user_id = request.sender.id
+async def log_to_mongo(request, command):
+        user_id = request['sender']['id']
         action = command['action']
         data = dumps(command.get('data', dict()), ensure_ascii=False)
 
-        try:
-            res = fun(request, command, bot)
-        finally:
-            store_action(user_id, action, data)
-
-        return res
-
-    return wrapper
+        await store_action(user_id, action, data)
