@@ -19,6 +19,16 @@ from models import user_info
 _logger = logs.get_logger('bot-processing')
 
 
+_HELP_MESSAGE = '''Чат бот ВятГУ для просмотра расписаний студентов.
+Что может этот бот:
+⚪ "Звонки" - расписание звонков
+⚪ "Выбрать группу" - выбрать в 4 клика нужную группу (бот ее запомнит)
+⚪ "Расписание" - расписание на текущий день (работает, если бот знает группу)
+⚪ "Посмотреть на сайте" - ссылка на полное расписание группы
+
+Вопросы и пожелания: vk.com/rzaevali'''
+
+
 class _ACTIONS:
     CALLS = 'calls'
     SELECT_GROUP = 'select_group'
@@ -28,6 +38,7 @@ class _ACTIONS:
     SELECT_GROUP_ID = 'select_group_id'
     SCHEDULE_URL = 'schedule_url'
     SCHEDULE_TODAY = 'schedule_today'
+    HELP = 'help'
 
 
 def _get_groups_info():
@@ -271,6 +282,14 @@ def _action_schedule_today(request: ViberMessageRequest, command: dict, bot: Api
         ])
 
 
+@logs.log_to_mongo
+def _action_help(request: ViberMessageRequest, command: dict, bot: Api):
+    bot.send_messages(request.sender.id, [
+        TextMessage(text=_HELP_MESSAGE),
+        keyboards.GREETING
+    ])
+
+
 def _on_exception(request: ViberMessageRequest, bot: Api):
     bot.send_messages(request.sender.id, [
         TextMessage(text='Упс, ошибка вышла :('),
@@ -281,6 +300,7 @@ def _on_exception(request: ViberMessageRequest, bot: Api):
 def process_subscribe_request(request: ViberSubscribedRequest, bot: Api):
     _logger.info(f'Processing subscribe request from {request.user.id}')
     bot.send_messages(request.user.id, [
+        TextMessage(text=_HELP_MESSAGE),
         keyboards.GREETING
     ])
 
@@ -323,6 +343,8 @@ def process_message_request(request: ViberMessageRequest, bot: Api):
             _action_schedule_url(request, command, bot)
         elif action == _ACTIONS.SCHEDULE_TODAY:
             _action_schedule_today(request, command, bot)
+        elif action == _ACTIONS.HELP:
+            _action_help(request, command, bot)
     except Exception as ex:
         _logger.exception('Error occurred during request processing', exc_info=ex)
         _on_exception(request, bot)
