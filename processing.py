@@ -281,6 +281,16 @@ def _on_exception(request: ViberMessageRequest, bot: Api):
 def process_subscribe_request(request: ViberSubscribedRequest, bot: Api):
     _logger.info(f'Processing subscribe request from {request.user.id}')
     bot.send_messages(request.user.id, [
+        TextMessage(text=
+                    '''Чат бот ВятГУ для просмотра расписаний студентов.
+Что может этот бот:
+⚪ 'Звонки' - расписание звонков
+⚪ 'Выбрать группу' - выбрать в 4 клика нужную группу (бот ее запомнит)
+⚪ 'Расписание' - расписание на текущий день (работает, если бот знает группу)
+⚪ 'Посмотреть на сайте' - ссылка на полное расписание группы
+
+Вопросы и пожелания: vk.com/rzaevali'''
+                    ),
         keyboards.GREETING
     ])
 
