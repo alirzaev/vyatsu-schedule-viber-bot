@@ -36,6 +36,11 @@ BUTTON_SCHEDULE = create_button(3, 'Расписание', {
 })
 
 
+BUTTON_HELP = create_button(6, 'Справка', {
+    'action': 'help'
+})
+
+
 def create_keyboard(buttons: list) -> KeyboardMessage:
     return KeyboardMessage(
         keyboard={
@@ -51,6 +56,7 @@ GREETING = create_keyboard([
     BUTTON_CALLS,
     BUTTON_SCHEDULE,
     BUTTON_SELECT_GROUP,
-    BUTTON_SCHEDULE_URL
+    BUTTON_SCHEDULE_URL,
+    BUTTON_HELP
 ]
 )
