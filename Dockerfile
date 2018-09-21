@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["sh", "-c", "gunicorn -b '0.0.0.0:443' bot:app"]
+CMD ["sh", "-c", "gunicorn -b '0.0.0.0:80' bot:app"]
