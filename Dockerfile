@@ -1,5 +1,5 @@
 FROM python:3.6.5-alpine3.7
-EXPOSE 443
+EXPOSE 80
 
 WORKDIR /usr/src/project
 
