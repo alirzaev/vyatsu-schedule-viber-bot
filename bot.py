@@ -18,7 +18,7 @@ import processing
 
 PORT = int(getenv('PORT', 80))
 TOKEN = getenv('TOKEN')
-WEB_HOOK_URL = getenv('WEB_HOOK_URL')
+WEBHOOK_URL = getenv('WEBHOOK_URL')
 
 # Configure logging
 logger = logs.get_logger('bot-main')
@@ -48,7 +48,7 @@ def incoming():
 
 
 def set_web_hook(bot_instance):
-    bot_instance.set_webhook(WEB_HOOK_URL)
+    bot_instance.set_webhook(WEBHOOK_URL)
 
 
 scheduler = sched.scheduler(time.time, time.sleep)

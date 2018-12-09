@@ -26,7 +26,7 @@ The link for starting converstion with bot can be found on [vyatsuschedule.ru](h
 
 `TOKEN` - token for Viber bot.
 
-`WEB_HOOK_URL` - URL to which Viber will send requests.
+`WEBHOOK_URL` - URL to which Viber will send requests.
 
 `API_URL` - URL of VyatSU schedule API server.
 
