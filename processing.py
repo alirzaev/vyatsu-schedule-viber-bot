@@ -1,6 +1,7 @@
 import re
 from json import loads, JSONDecodeError
 from typing import Optional
+from os import getenv
 
 from viberbot import Api
 from viberbot.api.messages import (
@@ -13,7 +14,7 @@ from viberbot.api.viber_requests import (
     ViberConversationStartedRequest
 )
 
-from utils import api, keyboards, logs
+from utils import api, keyboards, logs, beautifier
 from models import user_info
 
 _logger = logs.get_logger('bot-processing')
@@ -96,6 +97,8 @@ def _get_groups_info():
 _GROUPS_INFO = _get_groups_info()
 
 _SEASON = api.get_season()
+
+_WEBAPP_URL = getenv('WEBAPP_URL')
 
 
 def _parse_action(action: str) -> Optional[dict]:
@@ -246,7 +249,7 @@ def _action_schedule_url(request: ViberMessageRequest, command: dict, bot: Api):
     group_id = user_info.get_selected_group_id(request.sender.id)
 
     bot.send_messages(request.sender.id, [
-        URLMessage(media=f'https://vyatsuschedule.ru/#/schedule/{group_id}/{_SEASON}'),
+        URLMessage(media=f'{_WEBAPP_URL}/#/schedule/{group_id}/{_SEASON}'),
         keyboards.GREETING
     ])
 
@@ -260,15 +263,16 @@ def _action_schedule_today(request: ViberMessageRequest, command: dict, bot: Api
     group_id = user_info.get_selected_group_id(request.sender.id)
     if group_id is not None:
         data = api.get_schedule(group_id, _SEASON)
+        calls = api.get_calls()
         week_index = data['today']['week']
         day_index = data['today']['dayOfWeek']
-        lessons = data['weeks'][week_index][day_index]
+        lessons = [beautifier.beautify_lesson(lesson) for lesson in data['weeks'][week_index][day_index]]
 
         if all(lesson.strip() == '' for lesson in lessons):
             text = 'Занятий сегодня нет'
         else:
             text = '\n'.join(
-                f'{i}) {lesson}' for i, lesson in enumerate(lessons, 1) if lesson.strip() != ''
+                f"● {call['start']} - {call['end']}\n{lesson}" for call, lesson in zip(calls, lessons) if lesson.strip() != ''
             )
 
         bot.send_messages(request.sender.id, [
