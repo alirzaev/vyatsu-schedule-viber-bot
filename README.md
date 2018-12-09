@@ -22,7 +22,7 @@ The link for starting converstion with bot can be found on [vyatsuschedule.ru](h
 
 `MONGODB_URI=<uri>` - defines the uri for MongoDB cluster.
 
-`PORT` - port on which listen requests.
+`PORT` - port on which listen requests, defaults `80`.
 
 `TOKEN` - token for Viber bot.
 

@@ -16,7 +16,7 @@ from viberbot.api.viber_requests import (
 from utils import logs
 import processing
 
-PORT = int(getenv('PORT', 8080))
+PORT = int(getenv('PORT', 80))
 TOKEN = getenv('TOKEN')
 WEB_HOOK_URL = getenv('WEB_HOOK_URL')
 
