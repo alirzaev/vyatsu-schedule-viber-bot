@@ -1,6 +1,7 @@
 import re
 from json import loads, JSONDecodeError
 from typing import Optional
+from os import getenv
 
 from viberbot import Api
 from viberbot.api.messages import (
@@ -96,6 +97,8 @@ def _get_groups_info():
 _GROUPS_INFO = _get_groups_info()
 
 _SEASON = api.get_season()
+
+_WEBAPP_URL = getenv('WEBAPP_URL')
 
 
 def _parse_action(action: str) -> Optional[dict]:
@@ -246,7 +249,7 @@ def _action_schedule_url(request: ViberMessageRequest, command: dict, bot: Api):
     group_id = user_info.get_selected_group_id(request.sender.id)
 
     bot.send_messages(request.sender.id, [
-        URLMessage(media=f'https://vyatsuschedule.ru/#/schedule/{group_id}/{_SEASON}'),
+        URLMessage(media=f'{_WEBAPP_URL}/#/schedule/{group_id}/{_SEASON}'),
         keyboards.GREETING
     ])
 

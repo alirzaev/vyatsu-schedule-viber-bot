@@ -30,6 +30,8 @@ The link for starting converstion with bot can be found on [vyatsuschedule.ru](h
 
 `API_URL` - URL of VyatSU schedule API server.
 
+`WEBAPP_URL` - URL to VyatSU schedule web application.
+
 ### Optional environment variables
 
 `DEBUG` - manage logging level. `0` - only errors and higher, `1` - info messages and higher.
