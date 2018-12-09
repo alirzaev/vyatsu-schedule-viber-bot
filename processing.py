@@ -260,6 +260,7 @@ def _action_schedule_today(request: ViberMessageRequest, command: dict, bot: Api
     group_id = user_info.get_selected_group_id(request.sender.id)
     if group_id is not None:
         data = api.get_schedule(group_id, _SEASON)
+        calls = api.get_calls()
         week_index = data['today']['week']
         day_index = data['today']['dayOfWeek']
         lessons = data['weeks'][week_index][day_index]
@@ -268,7 +269,7 @@ def _action_schedule_today(request: ViberMessageRequest, command: dict, bot: Api
             text = 'Занятий сегодня нет'
         else:
             text = '\n'.join(
-                f'{i}) {lesson}' for i, lesson in enumerate(lessons, 1) if lesson.strip() != ''
+                f"● {call['start']} - {call['end']}\n{lesson}" for call, lesson in zip(calls, lessons) if lesson.strip() != ''
             )
 
         bot.send_messages(request.sender.id, [
