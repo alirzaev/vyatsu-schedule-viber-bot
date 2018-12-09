@@ -13,7 +13,7 @@ from viberbot.api.viber_requests import (
     ViberConversationStartedRequest
 )
 
-from utils import api, keyboards, logs
+from utils import api, keyboards, logs, beautifier
 from models import user_info
 
 _logger = logs.get_logger('bot-processing')
@@ -263,7 +263,7 @@ def _action_schedule_today(request: ViberMessageRequest, command: dict, bot: Api
         calls = api.get_calls()
         week_index = data['today']['week']
         day_index = data['today']['dayOfWeek']
-        lessons = data['weeks'][week_index][day_index]
+        lessons = [beautifier.beautify_lesson(lesson) for lesson in data['weeks'][week_index][day_index]]
 
         if all(lesson.strip() == '' for lesson in lessons):
             text = 'Занятий сегодня нет'
