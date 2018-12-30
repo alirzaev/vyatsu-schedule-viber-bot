@@ -1,42 +1,67 @@
-# VyatSU schedule Viber bot
+# Viber-бот для VyatSU schedule
 
-## Description
+Viber-бот для просмотра расписания занятий студентов [Вятского государственного университета](https://www.vyatsu.ru).
 
-This app provides students that use Viber a convenient way to view group schedules.
+Что может этот бот:
 
-What can this bot do:
+- Показать расписание на сегодняшний день.
 
-- Schedule for today
+- Выдать ссылку на полное расписание.
 
-- URL link to full schedule
+- Показать расписание звонков.
 
-- Rings schedule
+- Выбрать в 4 клика нужную группу.
 
-- Convenient way to choose group
+## Для пользователей
 
-The link for starting converstion with bot can be found on [vyatsuschedule.ru](https://vyatsuschedule.ru)
+Тык: [vyatsuschedule.github.io](https://vyatsuschedule.github.io/#/bots)
 
-## Running app
+## Для разработчиков
 
-### Required environment variables
+Параметры приложения задаются через переменные окружения.
 
-`MONGODB_URI=<uri>` - defines the uri for MongoDB cluster.
+### Необходимые переменные окружения
 
-`PORT` - port on which listen requests, defaults `80`.
+`MONGODB_URI` - URI базы данных MongoDB в формате `mongodb://<user>:<password>@<host>:<port>/<database>`. 
+Поле `<database>` обязательно.
 
-`TOKEN` - token for Viber bot.
+`PORT` - порт, который приложение будет слушать, по умолчанию `80`.
 
-`WEBHOOK_URL` - URL to which Viber will send requests.
+`TOKEN` - токен для Viber-бота.
 
-`API_URL` - URL of VyatSU schedule API server.
+`WEBHOOK_URL` - webhook для Viber-бота.
 
-`WEBAPP_URL` - URL to VyatSU schedule web application.
+`API_URL` - URL [backend-сервера](https://gitlab.com/vyatsu-schedule/backend).
 
-### Optional environment variables
+`WEBAPP_URL` - URL [веб-приложения](https://gitlab.com/vyatsu-schedule/frontend).
 
-`DEBUG` - manage logging level. `0` - only errors and higher, `1` - info messages and higher.
+### Опциональные переменные окружения
 
-### Server
+`DEBUG` - управляет уровнем сообщений в логах. `0` - только ошибки (`ERROR`) и выше,
+`1` - информационные сообщения (`INFO`) и выше.
 
-`gunicorn -b 0.0.0.0:$PORT bot:app`
+### Запуск
 
+```
+gunicorn -b 0.0.0.0:$PORT bot:app
+```
+
+### Docker
+
+1. Собираем образ
+
+   ```
+   docker build -t imagename .
+   ```
+
+2. Запускаем
+   
+   ```
+   docker run --name somename -d -p 8080:80 \
+     -e MONGODB_URI=<URI> \
+     -e TOKEN=<TOKEN> \
+     -e WEBHOOK_URL=<WEBHOOK_URL> \
+     -e API_URL=<API_URL> \
+     -e WEBAPP_URL=<WEBAPP_URL> \
+     imagename
+   ```

@@ -1,4 +1,4 @@
-FROM python:3.6.5-alpine3.7
+FROM python:3.7-alpine3.7
 EXPOSE 80
 
 WORKDIR /usr/src/project
