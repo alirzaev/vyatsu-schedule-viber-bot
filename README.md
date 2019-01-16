@@ -27,9 +27,9 @@ Viber-бот для просмотра расписания занятий ст�
 
 `WEBHOOK_URL` - webhook для Viber-бота.
 
-`API_URL` - URL [backend-сервера](https://gitlab.com/vyatsu-schedule/backend).
+`API_URL` - URL [backend-сервера](https://github.com/alirzaev/vyatsu-schedule-backend).
 
-`WEBAPP_URL` - URL [веб-приложения](https://gitlab.com/vyatsu-schedule/frontend).
+`WEBAPP_URL` - URL [веб-приложения](https://github.com/alirzaev/vyatsu-schedule).
 
 ### Опциональные переменные окружения
 
