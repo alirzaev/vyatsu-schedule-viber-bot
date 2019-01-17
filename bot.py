@@ -52,7 +52,7 @@ def set_web_hook(bot_instance):
 
 
 scheduler = sched.scheduler(time.time, time.sleep)
-scheduler.enter(5, 1, set_web_hook, (viber,))
+scheduler.enter(10, 1, set_web_hook, (viber,))
 t = threading.Thread(target=scheduler.run)
 t.start()
 
